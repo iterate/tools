@@ -1,0 +1,53 @@
+#!/bin/bash
+
+timeSinceTool="./util/timesince.py";
+
+usage() {
+cat <<EOF >&2
+Display logs for all pods.
+
+usage: k8slogs app [environment]
+environment: [test | prod]. Default prod.
+example: k8slogs chat prod
+
+EOF
+  exit 2
+}
+
+app=$1
+env=$2
+#pod=$3
+
+test -z $app && echo no app specified && echo " " && usage
+
+namespace=${env:="prod"}
+since="10h" #Max age of log entries to show
+
+rawPods=$(kubectl get pods --namespace=$namespace -lapp=$app --no-headers=true -o jsonpath={.items[*].metadata.name}); #Fetch pod list
+
+#Parse pod string into array
+IFS=$' ' read -rd '' -a parsedPods <<< "$rawPods";
+
+for pod in "${parsedPods[@]}"
+    do
+        IFS=$'\n' read -rd '' -a logs <<< "$(kubectl logs --timestamps=true --since=$since --namespace=$namespace $pod)"; #Fetch logs for pod
+
+        echo "";
+        echo "POD" ${pod%$'\n'}; # last entry has a newline \n so we remove that
+
+        if [ -z "$logs" ];
+        then
+            echo "No entries in the last $since.";
+            echo "";
+        fi;
+
+        for entry in "${logs[@]}"
+            do
+                if [[ $entry = *[![:space:]]* ]]; # Only print non empty output
+                then
+                    timestamp=$(cut -d " " -f1 <<< $entry);
+                    description=$(cut -d " " -f2- <<< $entry); # Parse timestamp to X hours/minutes/seconds ago
+                    echo $(python $timeSinceTool "$timestamp"): "$description";
+                fi
+        done
+done
