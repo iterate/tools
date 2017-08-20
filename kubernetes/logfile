@@ -1,3 +1,0 @@
-LOG:  skipping missing configuration file "/usr/local/pgsql/data/postgresql.auto.conf"
-FATAL:  data directory "/usr/local/pgsql/data" has group or world access
-DETAIL:  Permissions should be u=rwx (0700).
