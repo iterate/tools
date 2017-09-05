@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Run this to symlink scripts and make them executable for all users
+# path to script folders, separate new paths with spaces
+scriptFolders=(kubernetes/scripts);
+
+
+for dir in "${scriptFolders[@]}"
+do
+  path=$PWD/$dir;
+  cd $path;
+
+  for script in *
+  do
+    chmod 705 $path/$script; # Readable and executable by everyone
+    ln -s $path/$script /usr/local/bin/$script >/dev/null 2>&1;   # Make symlink, ignore ones that exist already
+  done
+done

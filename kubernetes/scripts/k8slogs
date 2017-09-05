@@ -1,6 +1,6 @@
 #!/bin/bash
 
-timeSinceTool="./util/timesince.py";
+timeSinceTool="$(dirname $(dirname $(readlink "$0")))/util/timesince.py";
 
 usage() {
 cat <<EOF >&2
